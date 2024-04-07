@@ -4,7 +4,7 @@ cenc_drm_content_protection_h264.py: encodes a video file in H.264 codec. Only e
 
 cenc_drm_content_protection_h265.py: encodes a video file in H.265 codec. Encodes up to 4k. Use this only for HLS.
 
-cenc_drm_content_protection_vp9.py: encodes a video file in VP9 codec. Encodes up to 4k. Use this for DASH and HLS.
+cenc_drm_content_protection_vp9.py: encodes a video file in VP9 codec. Encodes up to 4k. Use this only for DASH.
 
 demo.js: code for instantiating bitmovin player with correct stream file based on browser and other logic.
 
