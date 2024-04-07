@@ -58,21 +58,35 @@ For each video we need to create 4 encoded outputs:
 Please look at demo.js. Below is the pseudocode for the logic we need to build:
 
 if(browser is Safari) {
+
     if(mime type supports h265) {
+
         choose h265 HLS file
+
     }
+
     else {
+
         choose h264 HLS file
+
     }
+
 }
 
 else {
+
     if(mime type supports vp9) {
+
         choose vp9 DASH file
+
     }
+
     else {
+
         choose h264 DASH file
+
     }
+    
 }
 
 ## Testing the encoded video
