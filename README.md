@@ -1,6 +1,9 @@
 ## Description
 
-cenc_drm_content_protection_h264.py: encodes a video file in H.264 codec
+cenc_drm_content_protection_h264.py: encodes a video file in H.264 codec. Only encodes up to 1080p. Use this for DASH and HLS.
+cenc_drm_content_protection_h265.py: encodes a video file in H.265 codec. Encodes up to 4k. Use this only for HLS.
+cenc_drm_content_protection_vp9.py: encodes a video file in VP9 codec. Encodes up to 4k. Use this for DASH and HLS.
+demo.js: code for instantiating bitmovin player with correct stream file based on browser and other logic.
 
 ## How to run the script
 
@@ -35,6 +38,39 @@ Encoding status is Status.FINISHED (progress: 100 %)
 Encoding finished successfully
 
 If you are running this script with HLS manifest (i.e. for Apple devices) you need to use a different DRM_KEY than for DASH
+
+The variable "EXAMPLE_NAME" at the top of the script is the directory the script will save the outputs.
+
+## Running the script in production
+
+For each video we need to create 4 encoded outputs:
+
+1. DASH, H.264
+2. HLS, H.264
+3. DASH, VP9
+4. HLS, H.265
+
+## Instantiating the video player and choosing the right stream file
+
+Please look at demo.js. Below is the pseudocode for the logic we need to build:
+
+if(browser is Safari) {
+    if(mime type supports h265) {
+        choose h265 HLS file
+    }
+    else {
+        choose h264 HLS file
+    }
+}
+
+else {
+    if(mime type supports vp9) {
+        choose vp9 DASH file
+    }
+    else {
+        choose h264 DASH file
+    }
+}
 
 ## Testing the encoded video
 

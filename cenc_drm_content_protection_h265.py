@@ -48,7 +48,7 @@ from common import ConfigProvider
  * </ol>
 """
 
-EXAMPLE_NAME = "CENC_DRM_Protection_addedQC"
+EXAMPLE_NAME = "CENC_DRM_Protection_h265_upto4k"
 config_provider = ConfigProvider()
 bitmovin_api = BitmovinApi(api_key=config_provider.get_bitmovin_api_key(),
                            # uncomment the following line if you are working with a multi-tenant account
@@ -72,6 +72,8 @@ def main():
     is_dash = config_provider.get_is_dash()
 
     resolutions = [
+                [3840, 2160],
+                [2560, 1440],
                 [1920,1080],
                 [1600,900],
                 [1280,720],
@@ -83,20 +85,20 @@ def main():
                 [320,180]
                    ]
     
-    #H.264 is only efficient up to 1080p, hence the loop over fixed resolutions
+    
     for resolution in resolutions:
-        h264_video_configuration = _create_h264_video_configuration(height= resolution[1], width = resolution[0])
-        h264_video_stream = _create_stream(
+        h265_video_configuration = _create_h265_video_configuration(height= resolution[1], width = resolution[0])
+        h265_video_stream = _create_stream(
             encoding=encoding,
             encoding_input=http_input,
             input_path=input_file_path,
-            codec_configuration=h264_video_configuration,
+            codec_configuration=h265_video_configuration,
             stream_mode=StreamMode.PER_TITLE_TEMPLATE,
             per_title_settings=None
             )
         video_muxing = _create_fmp4_muxing(
             encoding=encoding,
-            stream=h264_video_stream
+            stream=h265_video_stream
             )
         _create_drm_config(
             encoding=encoding,
@@ -104,7 +106,7 @@ def main():
             output=output,
             output_path="video/{height}/{bitrate}_{uuid}",
         )
-        bitmovin_api.encoding.encodings.streams.qc.psnr.create(encoding_id=encoding.id, stream_id= h264_video_stream.id)
+        bitmovin_api.encoding.encodings.streams.qc.psnr.create(encoding_id=encoding.id, stream_id= h265_video_stream.id)
 
     # Add an AAC audio stream to the encoding
     aac_audio_configuration = _create_aac_audio_configuration(bitrate=128000)
@@ -137,7 +139,7 @@ def main():
         )
         start_encoding_request = StartEncodingRequest(
             per_title=PerTitle(
-                h264_configuration=H264PerTitleConfiguration(
+                h265_configuration=H265PerTitleConfiguration(
                     min_bitrate= 240000,
                     max_bitrate= 4500000,
                     min_bitrate_step_size= 1.5,
@@ -156,7 +158,7 @@ def main():
         )
         start_encoding_request = StartEncodingRequest(
             per_title=PerTitle(
-                h264_configuration=H264PerTitleConfiguration(
+                h265_configuration=H265PerTitleConfiguration(
                     min_bitrate= 240000,
                     max_bitrate= 4500000,
                     min_bitrate_step_size= 1.5,
@@ -322,6 +324,37 @@ def _create_h264_video_configuration( height, width):
     )
 
     return bitmovin_api.encoding.configurations.video.h264.create(h264_video_configuration=config)
+
+def _create_h265_video_configuration( height, width):
+    # type: (int, int) -> H264VideoConfiguration
+    """
+    Creates a configuration for the H.264 video codec to be applied to video streams.
+
+    <p>The output resolution is defined by setting the height to 1080 pixels. Width will be
+    determined automatically to maintain the aspect ratio of your input video.
+
+    <p>To keep things simple, we use a quality-optimized VoD preset configuration, which will apply
+    proven settings for the codec. See <a
+    href="https://bitmovin.com/docs/encoding/tutorials/how-to-optimize-your-h264-codec-configuration-for-different-use-cases">How
+    to optimize your H264 codec configuration for different use-cases</a> for alternative presets.
+
+    <p>API endpoint:
+    https://bitmovin.com/docs/encoding/api-reference/sections/configurations#/Encoding/PostEncodingConfigurationsVideoH264
+    """
+
+    config = H265VideoConfiguration(
+        name="Per-title base {0}x{1}".format(width,height),
+        preset_configuration=PresetConfiguration.VOD_STANDARD,
+        profile= ProfileH265.MAIN,
+        height= height,
+        width= width,
+        max_keyframe_interval=2.0,
+        min_keyframe_interval=2.0,
+        encoding_mode= EncodingMode.TWO_PASS,
+
+    )
+
+    return bitmovin_api.encoding.configurations.video.h265.create(h265_video_configuration=config)
 
 
 def _create_stream(encoding, encoding_input, input_path, codec_configuration, stream_mode, per_title_settings):
