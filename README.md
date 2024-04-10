@@ -4,7 +4,7 @@ cenc_drm_content_protection_h264.py: encodes a video file in H.264 codec. Only e
 
 cenc_drm_content_protection_h265.py: encodes a video file in H.265 codec. Encodes up to 4k. Use this only for HLS.
 
-cenc_drm_content_protection_vp9.py: encodes a video file in VP9 codec. Encodes up to 4k. Use this only for DASH.
+cenc_drm_content_protection_av1.py: encodes a video file in AV1 codec. Encodes up to 4k. Use this only for DASH.
 
 demo.js: code for instantiating bitmovin player with correct stream file based on browser and other logic.
 
@@ -50,7 +50,7 @@ For each video we need to create 4 encoded outputs:
 
 1. DASH, H.264
 2. HLS, H.264
-3. DASH, VP9
+3. DASH, AV1
 4. HLS, H.265
 
 ## Instantiating the video player and choosing the right stream file
@@ -75,9 +75,9 @@ if(browser is Safari) {
 
 else {
 
-    if(mime type supports vp9) {
+    if(mime type supports av1) {
 
-        choose vp9 DASH file
+        choose av1 DASH file
 
     }
 

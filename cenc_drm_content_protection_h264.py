@@ -48,7 +48,7 @@ from common import ConfigProvider
  * </ol>
 """
 
-EXAMPLE_NAME = "CENC_DRM_Protection_addedQC"
+EXAMPLE_NAME = "CENC_DRM_Protection_H264_fixedresolution_upto1080p"
 config_provider = ConfigProvider()
 bitmovin_api = BitmovinApi(api_key=config_provider.get_bitmovin_api_key(),
                            # uncomment the following line if you are working with a multi-tenant account
@@ -71,19 +71,17 @@ def main():
     
     is_dash = config_provider.get_is_dash()
 
+    #H.264 is only efficient up to 1080p
     resolutions = [
                 [1920,1080],
                 [1600,900],
                 [1280,720],
-                [1024,756],
+                [852, 480],
                 [768,432],
-                [640,360],
-                [512,288],
-                [384,216],
-                [320,180]
+                [640,360]
                    ]
     
-    #H.264 is only efficient up to 1080p, hence the loop over fixed resolutions
+    
     for resolution in resolutions:
         h264_video_configuration = _create_h264_video_configuration(height= resolution[1], width = resolution[0])
         h264_video_stream = _create_stream(
@@ -91,7 +89,7 @@ def main():
             encoding_input=http_input,
             input_path=input_file_path,
             codec_configuration=h264_video_configuration,
-            stream_mode=StreamMode.PER_TITLE_TEMPLATE,
+            stream_mode=StreamMode.PER_TITLE_TEMPLATE_FIXED_RESOLUTION,
             per_title_settings=None
             )
         video_muxing = _create_fmp4_muxing(

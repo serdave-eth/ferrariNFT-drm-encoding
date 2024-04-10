@@ -48,7 +48,7 @@ from common import ConfigProvider
  * </ol>
 """
 
-EXAMPLE_NAME = "CENC_DRM_Protection_addedQC_vp9"
+EXAMPLE_NAME = "CENC_DRM_Protection_av1_4k"
 config_provider = ConfigProvider()
 bitmovin_api = BitmovinApi(api_key=config_provider.get_bitmovin_api_key(),
                            # uncomment the following line if you are working with a multi-tenant account
@@ -77,27 +77,24 @@ def main():
                 [1920,1080],
                 [1600,900],
                 [1280,720],
-                [1024,756],
+                [852, 480],
                 [768,432],
-                [640,360],
-                [512,288],
-                [384,216],
-                [320,180]
+                [640,360]
                    ]
     
     for resolution in resolutions:
-        vp9_video_configuration = _create_vp9_video_configuration(height= resolution[1], width = resolution[0])
-        vp9_video_stream = _create_stream(
+        av1_video_configuration = _create_av1_video_configuration(height= resolution[1], width = resolution[0])
+        av1_video_stream = _create_stream(
             encoding=encoding,
             encoding_input=http_input,
             input_path=input_file_path,
-            codec_configuration=vp9_video_configuration,
-            stream_mode=StreamMode.PER_TITLE_TEMPLATE,
+            codec_configuration=av1_video_configuration,
+            stream_mode=StreamMode.PER_TITLE_TEMPLATE_FIXED_RESOLUTION,
             per_title_settings=None
             )
-        video_muxing = _create_webm_muxing(
+        video_muxing = _create_fmp4_muxing(
             encoding=encoding,
-            stream=vp9_video_stream
+            stream=av1_video_stream
             )
         _create_drm_config(
             encoding=encoding,
@@ -105,11 +102,10 @@ def main():
             output=output,
             output_path="video/{height}/{bitrate}_{uuid}",
         )
-        bitmovin_api.encoding.encodings.streams.qc.psnr.create(encoding_id=encoding.id, stream_id= vp9_video_stream.id)
+        bitmovin_api.encoding.encodings.streams.qc.psnr.create(encoding_id=encoding.id, stream_id= av1_video_stream.id)
 
     # Add an AAC audio stream to the encoding
-    #aac_audio_configuration = _create_aac_audio_configuration(bitrate=128000)
-    aac_audio_configuration = _create_vorbis_audio_configuration()
+    aac_audio_configuration = _create_aac_audio_configuration(bitrate=128000)
     aac_audio_stream = _create_stream(
         encoding=encoding,
         encoding_input=http_input,
@@ -119,7 +115,7 @@ def main():
         per_title_settings=None
     )
 
-    audio_muxing = _create_webm_muxing(
+    audio_muxing = _create_fmp4_muxing(
         encoding=encoding,
         stream=aac_audio_stream
     )
@@ -139,8 +135,12 @@ def main():
         )
         start_encoding_request = StartEncodingRequest(
             per_title=PerTitle(
-                vp9_configuration=Vp9PerTitleConfiguration(
-                    auto_representations=AutoRepresentation()
+                av1_configuration=Av1PerTitleConfiguration(
+                    min_bitrate= 240000,
+                    max_bitrate= 4500000,
+                    min_bitrate_step_size= 1.5,
+                    max_bitrate_step_size= 1.9,
+                    #auto_representations= AutoRepresentation()
                 )
             ),
             manifest_generator=ManifestGenerator.V2,
@@ -154,8 +154,12 @@ def main():
         )
         start_encoding_request = StartEncodingRequest(
             per_title=PerTitle(
-                vp9_configuration=Vp9PerTitleConfiguration(
-                    auto_representations=AutoRepresentation()
+                av1_configuration=Av1PerTitleConfiguration(
+                    min_bitrate= 240000,
+                    max_bitrate= 4500000,
+                    min_bitrate_step_size= 1.5,
+                    max_bitrate_step_size= 1.9,
+                    #auto_representations= AutoRepresentation()
                 )
             ),
             manifest_generator=ManifestGenerator.V2,
@@ -285,7 +289,7 @@ def _create_s3_output(bucket_name, access_key, secret_key):
 
     return bitmovin_api.encoding.outputs.s3.create(s3_output=s3_output)
 
-def _create_vp9_video_configuration( height, width):
+def _create_av1_video_configuration( height, width):
     # type: (int, int) -> H264VideoConfiguration
     """
     Creates a configuration for the H.264 video codec to be applied to video streams.
@@ -302,18 +306,7 @@ def _create_vp9_video_configuration( height, width):
     https://bitmovin.com/docs/encoding/api-reference/sections/configurations#/Encoding/PostEncodingConfigurationsVideoH264
     """
 
-    """config = H265VideoConfiguration(
-        name="Per-title base {0}x{1}".format(width,height),
-        preset_configuration=PresetConfiguration.VOD_STANDARD,
-        profile= ProfileH265.MAIN,
-        height= height,
-        width= width,
-        max_keyframe_interval=2.0,
-        min_keyframe_interval=2.0,
-        encoding_mode= EncodingMode.TWO_PASS,
-
-    )"""
-    config = Vp9VideoConfiguration(
+    """config = Vp9VideoConfiguration(
         name="Per-title base {0}x{1}".format(width,height),
         preset_configuration=PresetConfiguration.VOD_STANDARD,
         height= height,
@@ -323,7 +316,16 @@ def _create_vp9_video_configuration( height, width):
         encoding_mode= EncodingMode.TWO_PASS,
 
     )
-    return bitmovin_api.encoding.configurations.video.vp9.create(vp9_video_configuration=config)
+    return bitmovin_api.encoding.configurations.video.vp9.create(vp9_video_configuration=config)"""
+    
+    config = Av1VideoConfiguration(
+        name="Per-title base {0}x{1}".format(width,height),
+        preset_configuration=Av1PresetConfiguration.VOD_STANDARD,
+        height=height,
+        width=width,
+        encoding_mode=EncodingMode.TWO_PASS
+    )
+    return bitmovin_api.encoding.configurations.video.av1.create(av1_video_configuration=config)
 
 
 def _create_stream(encoding, encoding_input, input_path, codec_configuration, stream_mode, per_title_settings):
@@ -356,21 +358,24 @@ def _create_stream(encoding, encoding_input, input_path, codec_configuration, st
 
     return bitmovin_api.encoding.encodings.streams.create(encoding_id=encoding.id, stream=stream)
 
-def _create_vorbis_audio_configuration():
-    # type: () -> VorbisAudioConfiguration
+def _create_aac_audio_configuration(bitrate):
+    # type: (int) -> AacAudioConfiguration
     """
-    Creates a Vorbis audio configuration. The sample rate of the audio will be set accordingly to
-    the sample rate of the source audio.
+    Creates a configuration for the AAC audio codec to be applied to audio streams.
 
     <p>API endpoint:
-    https://bitmovin.com/docs/encoding/api-reference/sections/configurations#/Encoding/PostEncodingConfigurationsAudioVorbis
+    https://bitmovin.com/docs/encoding/api-reference/sections/configurations#/Encoding/PostEncodingConfigurationsAudioAac
     """
-    config = VorbisAudioConfiguration(name="Vorbis 128 kbit/s", bitrate=128000)
 
-    return bitmovin_api.encoding.configurations.audio.vorbis.create(vorbis_audio_configuration=config)
+    config = AacAudioConfiguration(
+        name="AAC {0} kbit/s".format(bitrate / 1000),
+        bitrate=bitrate
+    )
 
-def _create_webm_muxing(encoding, stream):
-    # type: (Encoding, Stream) -> WebmMuxing
+    return bitmovin_api.encoding.configurations.audio.aac.create(aac_audio_configuration=config)
+
+def _create_fmp4_muxing(encoding, stream):
+    # type: (Encoding, Stream) -> Fmp4Muxing
     """
     Creates a fragmented MP4 muxing. This will generate segments with a given segment length for
     adaptive streaming.
@@ -380,20 +385,13 @@ def _create_webm_muxing(encoding, stream):
     @param stream The stream that is associated with the muxing
     """
 
-    """muxing = Fmp4Muxing(
+    muxing = Fmp4Muxing(
         segment_length=4.0,
         streams=[MuxingStream(stream_id=stream.id)]
     )
 
     return bitmovin_api.encoding.encodings.muxings.fmp4.create(encoding_id=encoding.id,
-                                                               fmp4_muxing=muxing)"""
-    
-    muxing = WebmMuxing(
-        segment_length=4.0,
-        streams=[MuxingStream(stream_id=stream.id)]
-    )
-    return bitmovin_api.encoding.encodings.muxings.webm.create(encoding_id=encoding.id, webm_muxing=muxing)
-
+                                                               fmp4_muxing=muxing)
 
 def _create_drm_config(encoding, muxing, output, output_path):
     # type: (Encoding, Muxing, Output, str) -> CencDrm
@@ -420,26 +418,17 @@ def _create_drm_config(encoding, muxing, output, output_path):
         la_url=config_provider.get_drm_playready_laurl()
     )
 
-    """cenc_fair_play = CencFairPlay(
-        iv=config_provider.get_drm_fairplay_iv(),
-        uri=config_provider.get_drm_fairplay_uri()
-    )"""
-
     cenc_drm = CencDrm(
         outputs=[_build_encoding_output(output=output, output_path=output_path)],
         key=config_provider.get_drm_key(),
         kid=config_provider.get_drm_widevine_kid(),
         widevine=widevine_drm,
-        #fair_play=cenc_fair_play,
         play_ready=playready_drm
     )
 
-    """return bitmovin_api.encoding.encodings.muxings.fmp4.drm.cenc.create(encoding_id=encoding.id,
+    return bitmovin_api.encoding.encodings.muxings.fmp4.drm.cenc.create(encoding_id=encoding.id,
                                                                         muxing_id=muxing.id,
-                                                                        cenc_drm=cenc_drm)"""
-    
-    return bitmovin_api.encoding.encodings.muxings.webm.drm.cenc.create(encoding_id=encoding.id,muxing_id=muxing.id,cenc_drm=cenc_drm)
-
+                                                                        cenc_drm=cenc_drm)
 
 def _create_default_dash_manifest(encoding, output, output_path):
     # type: (Encoding, Output, str) -> DashManifest
