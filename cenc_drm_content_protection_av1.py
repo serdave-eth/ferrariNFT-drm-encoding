@@ -71,13 +71,29 @@ def main():
     
     is_dash = config_provider.get_is_dash()
 
+    """
+    Note from Bitmovin team on resolutions to use:
+    320 x 180
+384 x 216
+512 x 288
+640 x 360
+768 x 432
+1024 x 576
+1280 x 720
+1600 x 900
+1920 x 1080
+2560 x 1440 
+3840 x 2160 
+note we can only go up to 8 resolutions with per title encoding
+    """
+
     resolutions = [
                 [3840, 2160],
                 [2560, 1440],
                 [1920,1080],
                 [1600,900],
                 [1280,720],
-                [852, 480],
+                [1024, 576],
                 [768,432],
                 [640,360]
                    ]
