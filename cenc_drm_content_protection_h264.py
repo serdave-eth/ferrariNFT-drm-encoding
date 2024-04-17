@@ -48,7 +48,7 @@ from common import ConfigProvider
  * </ol>
 """
 
-EXAMPLE_NAME = "CENC_DRM_Protection_H264_fixedresolution_upto1080p_updatedresolutions"
+EXAMPLE_NAME = "Playready Test"
 config_provider = ConfigProvider()
 bitmovin_api = BitmovinApi(api_key=config_provider.get_bitmovin_api_key(),
                            # uncomment the following line if you are working with a multi-tenant account
@@ -108,6 +108,7 @@ note we can only go up to 8 resolutions with per title encoding
             input_path=input_file_path,
             codec_configuration=h264_video_configuration,
             stream_mode=StreamMode.PER_TITLE_TEMPLATE_FIXED_RESOLUTION,
+            #stream_mode=StreamMode.PER_TITLE_TEMPLATE,
             per_title_settings=None
             )
         video_muxing = _create_fmp4_muxing(

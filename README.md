@@ -73,6 +73,10 @@ if(browser is Safari) {
 
 }
 
+else if (browser is firefox) {
+    choose h264 DASH file
+}
+
 else {
 
     if(mime type supports av1) {
