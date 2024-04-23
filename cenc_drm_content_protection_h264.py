@@ -48,7 +48,7 @@ from common import ConfigProvider
  * </ol>
 """
 
-EXAMPLE_NAME = "Playready Test"
+EXAMPLE_NAME = "CENC_DRM_Protection_H264_fixedresolution_upto1080p_updatedresolutions"
 config_provider = ConfigProvider()
 bitmovin_api = BitmovinApi(api_key=config_provider.get_bitmovin_api_key(),
                            # uncomment the following line if you are working with a multi-tenant account
@@ -90,13 +90,7 @@ note we can only go up to 8 resolutions with per title encoding
     #H.264 is only efficient up to 1080p
     resolutions = [
                 [1920,1080],
-                [1600,900],
-                [1280,720],
-                [1024, 576],
-                [768,432],
-                [640,360],
-                [512, 288],
-                [384, 216]
+                [1280,720]
                    ]
     
     

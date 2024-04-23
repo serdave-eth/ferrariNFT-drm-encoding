@@ -48,7 +48,7 @@ from common import ConfigProvider
  * </ol>
 """
 
-EXAMPLE_NAME = "CENC_DRM_Protection_h265_4kvideo_pertitlefixedresolution"
+EXAMPLE_NAME = "CENC_DRM_Protection_H265_fixedresolution_upto4k_updatedresolutions"
 config_provider = ConfigProvider()
 bitmovin_api = BitmovinApi(api_key=config_provider.get_bitmovin_api_key(),
                            # uncomment the following line if you are working with a multi-tenant account
@@ -89,13 +89,8 @@ note we can only go up to 8 resolutions with per title encoding
 
     resolutions = [
                 [3840, 2160],
-                [2560, 1440],
                 [1920,1080],
-                [1600,900],
-                [1280,720],
-                [1024, 576],
-                [768,432],
-                [640,360]
+                [1280,720]
                    ]
     
     
